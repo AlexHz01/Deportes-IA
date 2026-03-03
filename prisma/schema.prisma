@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  name                  String?
+  password              String
+  role                  Role      @default(USER)
+  plan                  Plan      @default(FREE)
+  conektaCustomerId     String?   @unique
+  conektaSubscriptionId String?   @unique
+  expiresAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Sport {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  leagues   League[]
+}
+
+model League {
+  id         String   @id @default(uuid())
+  name       String
+  country    String?
+  logo       String?
+  tier       Int      @default(3)
+  sportId    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  externalId Int?     @unique
+  sport      Sport    @relation(fields: [sportId], references: [id])
+  matches    Match[]
+  teams      Team[]
+
+  @@unique([name, country, sportId])
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  name        String
+  shortName   String?
+  logo        String?
+  stadium     String?
+  leagueId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  awayMatches Match[]  @relation("AwayTeam")
+  homeMatches Match[]  @relation("HomeTeam")
+  league      League   @relation(fields: [leagueId], references: [id])
+
+  @@unique([name, leagueId])
+}
+
+model Match {
+  id          String       @id @default(uuid())
+  date        DateTime
+  status      MatchStatus  @default(SCHEDULED)
+  leagueId    String
+  homeTeamId  String
+  awayTeamId  String
+  homeScore   Int?
+  awayScore   Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  externalId  Int?         @unique
+  awayTeam    Team         @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homeTeam    Team         @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  league      League       @relation(fields: [leagueId], references: [id])
+  predictions Prediction[]
+}
+
+model Prediction {
+  id            String           @id @default(uuid())
+  matchId       String
+  result        String
+  confidence    Float
+  analysis      String
+  aiModel       String?
+  bettingTips   Json?
+  cardsAnalysis Json?
+  homeForm      String?
+  awayForm      String?
+  stats         Json?
+  isPremium     Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  status        PredictionStatus @default(PENDING)
+  match         Match            @relation(fields: [matchId], references: [id])
+}
+
+model AIConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Plan {
+  FREE
+  SILVER
+  GOLD
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PredictionStatus {
+  PENDING
+  WIN
+  LOSS
+  VOID
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
