@@ -98,7 +98,7 @@ export async function getCurrentUser() {
     }
 }
 
-export async function updatePlan(userId: string, plan: string) {
+export async function updatePlan(userId: string, plan: "FREE" | "SILVER" | "GOLD") {
     try {
         // @ts-ignore
         const user = await prisma.user.update({

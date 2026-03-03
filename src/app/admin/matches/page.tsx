@@ -119,7 +119,7 @@ export default function MatchesPage() {
             const validateRes = await fetch('/api/cron/validate-predictions');
             const validateData = await validateRes.json();
             if (validateData.updated > 0) {
-                toast.success(`Validación: ${validateData.updated} predicciones actualizadas`, { icon: '✅' });
+                toast.success(`Validación: ${validateData.updated} predicciones actualizadas`);
             }
         } catch (e) {
             console.error("Validation error", e);
